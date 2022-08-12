@@ -40,7 +40,11 @@ box-sizing属性可以有两个值
 
 content-box:默认值，设置的宽高只是内容宽高，边框和内边距会撑大盒子。
 
+<img src="image/W3C标准盒模型content-box.jpg" style="zoom:67%;" />
+
 border-box:设置的宽高是内容边框和内边距，设置边框和内边距会挤压内容的大小。
+
+<img src="image/IE盒模型border-box.jpg" style="zoom: 67%;" />
 
 **边框**
 
