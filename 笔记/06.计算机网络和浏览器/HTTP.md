@@ -327,29 +327,98 @@ CONNECT方法的格式： CONNECT  代理服务器名:端口号   HTTP版本
 
 Cookie 本质上就是浏览器里面存储的一个很小的文本文件，内部以键值对的方式来存储(在chrome开发者面板的`Application`这一栏可以看到)。向同一个域名下发送请求，都会携带相同的 Cookie，服务器拿到 Cookie 进行解析，便能拿到客户端的状态。
 
+**Cookie 的工作过程**
+
+会用到两个字段：响应头字段 `Set-Cookie` 和请求头字段 `Cookie`。
+
+- 响应报文使用 `Set-Cookie` 字段发送“`key=value`”形式的 `Cookie` 值
+- 请求报文里用 `Cookie` 字段发送多个 `Cookie` 值
+
+
+
 Cookie 的作用很好理解，就是用来做**状态存储**的，但它也是有诸多致命的缺陷的：
 
 1.  容量缺陷。Cookie 的体积上限只有`4KB`，只能用来存储少量的信息。
-
 2.  性能缺陷。Cookie 紧跟域名，不管域名下面的某一个地址需不需要这个 Cookie ，请求都会携带上完整的 Cookie，这样随着请求数的增多，其实会造成巨大的性能浪费的，因为请求携带了很多不必要的内容。
-
 3.  安全缺陷。由于 Cookie 以纯文本的形式在浏览器和服务器中传递，很容易被非法用户截获，然后进行一系列的篡改，在 Cookie 的有效期内重新发送给服务器，这是相当危险的。另外，在`HttpOnly`为 false 的情况下，Cookie 信息能直接通过 JS 脚本来读取。
 
-cookie重要的属性
+**Cookie 的属性**
 
-| 属性         | 说明 |
-| ---------- | -- |
-| name=value |    |
-| domain     |    |
-| path       |    |
-| maxAge     |    |
-| expires    |    |
-| secure     |    |
-| httpOnly   |    |
+**`Cookie` 的生存周期**：可以使用 `Expires` 和 `Max-Age` 两个属性来设置
 
-[https://juejin.cn/post/6844904034181070861](https://juejin.cn/post/6844904034181070861 "https://juejin.cn/post/6844904034181070861")
+- `Expires`即过期时间，用的是绝对时间点，可以理解为“截止日期”（`deadline`）。
+- `Max-Age`用的是相对时间，单位是秒，浏览器用收到报文的时间点再加上 `Max-Age`，就可以得到失效的绝对时间。
+- `Expires` 和 `Max-Age` 可以同时出现，浏览器会优先采用 `Max-Age` 计算失效期。
+
+**`Cookie` 的作用域**：让浏览器仅发送给特定的服务器和 `URI`，避免被其他网站盗用。
+
+- `Domain` 和 `Path` 指定了 `Cookie` 所属的域名和路径，浏览器在发送 `Cookie` 前会从 `URI` 中提取出 `host` 和 `path` 部分，对比 `Cookie` 的属性。
+- 如果不满足条件，就不会在请求头里发送 `Cookie`。
+
+**`Cookie` 的安全性**：尽量不要让服务器以外的人看到。
+
+- `HttpOnly`：`Cookie` 只能通过浏览器 HTTP 协议传输，禁止其他方式访问，比如不能通过 JS 访问 `Cookie`，减少 XSS 攻击；
+- `SameSite`：`SameSite` 可以防范 XSRF（跨站请求伪造）攻击，设置成 `SameSite=Strict` 可以严格限定 `Cookie` 不能随着跳转链接跨站发送，而 `SameSite=Lax` 则略宽松一点，允许 `GET`/`HEAD` 等安全方法，但禁止 `POST` 跨站发送
+- `Secure`：表示这个 `Cookie` 仅能用 HTTPS 协议加密传输，明文的 HTTP 协议会禁止发送。
+
+**Cookie使用示例**
+
+```
+// 读取网站下所有的 cookie 信息，获取的结果是一个以分号`;`作为分割的一个字符串
+let allCookies = document.cookie;
+
+// 往原来的已经存在的 cookie 中加入新的 cookie
+document.cookie ="name=vincent";
+
+// 还可以在后面加上可选择的选项键值对，如 domain、path、expires
+document.cookie="name=vincent;domain=.test.com"
+
+// 删除cookie，就是让这个 cookie 的 expires 过期，即设置这个 expires 的值为 0
+document.cookie="name=vincent;domain=.test.com;expires=0");
+```
+
+https://juejin.cn/post/6844904034181070861 "https://juejin.cn/post/6844904034181070861")
 
 #### localStorage
+
+存储在本地，除非手动清除，否则一直存在
+
+存储大小5M
+
+默认不参与和服务器的通信
+
+#### SessionStorage
+
+在当前网页会话下有效，刷新后依然存在，但关闭页面或浏览器后就会被清除
+
+存储大小5M
+
+默认不参与和服务器的通信
+
+#### indexedDB
+
+除非被清理，否则一直存在
+
+数据存储大小无限制
+
+不参与和服务端的通信
+
+**indexedDB使用示例**
+
+```
+// 使用 indexedDB.open() 方法创建或打开数据库
+var request = window.indexedDB.open(dbName, version); // 数据库名 版本号
+// error 事件表示打开数据库失败
+request.onerror = function (event) {
+  console.log('创建或打开数据库失败');
+};
+// success 事件表示成功打开数据库
+var db;
+request.onsuccess = function (event) {
+  db = request.result;
+  console.log('创建或打开数据库成功');
+};
+```
 
 强缓存和协商缓存
 
