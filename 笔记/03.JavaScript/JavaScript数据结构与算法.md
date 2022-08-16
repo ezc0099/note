@@ -1,4 +1,4 @@
-#  JavaScript数据结构与算法
+# JavaScript数据结构与算法
 
 ## 栈
 
@@ -303,7 +303,7 @@ var hasCycle = function(head) {
 
 #### 二叉树的遍历
 
-中序遍历：
+**中序遍历：**
 
 1.递归
 
@@ -325,13 +325,25 @@ let inorderTraversal = function (root) {
 2.迭代
 
 ```javascript
+let inorderTraversal = function (root) {
+    let stack = [];
+    let result = [];
+    while(root || stack.length){
+        while(root){
+        	stack.push(root);
+        root = root.left;
+    	}
+    	root = stack.pop()
+    	result.push(root.val)
+    	root = root.right
+    } 
+    return result;
+}
 ```
 
 
 
-## 排序与搜索
-
-### 八大排序
+## 排序算法
 
 #### 冒泡排序
 
@@ -465,7 +477,7 @@ function countingSort(arr){
 
 
 
-### 搜索算法
+## 搜索算法
 
 #### 线性/顺序搜索
 
